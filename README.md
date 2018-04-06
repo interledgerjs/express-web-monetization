@@ -104,7 +104,7 @@ The server waits for money to come in and then shows the image.
 git clone https://github.com/andywong418/express-web-monetization.git
 cd express-web-monetization
 npm install
-DEBUG=koa* node example/index.js
+DEBUG=* node example/index.js
 ```
 
 Now go to [http://localhost:8080](http://localhost:8080), and watch the server
@@ -129,7 +129,7 @@ Create a new `ExpressWebMonetization` instance.
 - `opts.maxBalance` - The maximum balance that can be associated with any user. Defaults to `Infinity`.
 - `opts.receiveEndpointUrl` - The endpoint in your Hapi route configuration that specifies where a user pays streams PSK packets to your site. Defaults to `/__monetizer/{id}` where `{id}` is the server generated ID (stored in the browser as a cookie).
 - `opts.cookieName` - The cookie key name for your server generated payer ID. Defaults to `__monetizer`.
-- `opts.cookieOptions` - Cookie configurations for Koa. See [Koa ctx setting cookies options](http://koajs.com/) for more details! Only defaults are `httpOnly: false`
+- `opts.cookieOptions` - Cookie configurations for Express. See [Express response setting cookies options](https://expressjs.com/en/api.html) for more details! Only defaults are `httpOnly: false`
 ### Receiver
 
 ```ts
@@ -154,7 +154,7 @@ Creates a new `MonetizerClient` instance.
 ### Middleware for cookies
 
 ```ts
-WebMonetizationMiddleWare(monetizer: KoaWebMonetization)
+WebMonetizationMiddleWare(monetizer: ExpressWebMonetization)
 ```
 This middleware allows cookies to be generated (or just sent if already set) from the server to the client. It also injects the `awaitBalance` and `spend` methods described below. Note that your app must require and use the `cookie-parser` middleware before it uses the `WebMonetizationMiddleware`. 
 
