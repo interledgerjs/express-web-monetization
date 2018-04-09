@@ -35,7 +35,7 @@ const express = require('express')
 const app = express()
 const server = require('http').Server(app)
 const router = express.Router()
-const { WebMonetizationMiddleWare, ExpressWebMonetization } = require('express-web-monetization')
+const { WebMonetizationMiddleware, ExpressWebMonetization } = require('express-web-monetization')
 const monetizer = new ExpressWebMonetization()
 const cookieParser = require('cookie-parser')
 
