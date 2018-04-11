@@ -154,7 +154,7 @@ Creates a new `MonetizerClient` instance.
 ### Middleware for cookies
 
 ```ts
-WebMonetizationMiddleWare(monetizer: ExpressWebMonetization)
+WebMonetizationMiddleware(monetizer: ExpressWebMonetization)
 ```
 This middleware allows cookies to be generated (or just sent if already set) from the server to the client. It also injects the `awaitBalance` and `spend` methods described below. Note that your app must require and use the `cookie-parser` middleware before it uses the `WebMonetizationMiddleware`. 
 
