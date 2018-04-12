@@ -23,27 +23,19 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-  publish_to_npm:
-    docker:
-      - image: circleci/node:8
-
-    working_directory: ~/repo
+      - run: npm run test
+  deploy:
 
     steps:
-      - checkout
-
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-          - v1-dependencies-{{ checksum "package.json" }}
-          # fallback to using the latest cache if no exact match is found
-          - v1-dependencies-
-
-      - run: mv npmrc-env .npmrc
-
+      - attach_workspace:
+          at: ~/repo
       - run:
-          name: Publish to NPM (only if a new version has been tagged)
-          command: if [ "$(npm show express-web-monetization version)" != "$(npm ls --depth=-1 2>/dev/null | head -1 | cut -f 1 -d " " | cut -f 2 -d @)" ] ; then npm publish ; fi
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$NP<_TOKEN" > ~/repo/.npmrc
+      - run:
+          name: Publish package
+          command: npm publish
+
 
 
 workflows:
@@ -55,7 +47,7 @@ workflows:
             branches:
               ignore:
                 - gh-pages
-      - publish_to_npm:
+      - deploy:
           requires:
             - build
           filters:
