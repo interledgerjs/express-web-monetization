@@ -23,8 +23,6 @@ jobs:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
 
-      - run: npm test
-
   publish_to_npm:
     docker:
       - image: circleci/node:8
