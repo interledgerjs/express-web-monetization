@@ -53,7 +53,7 @@ router.get('/content/', async (req, res) => {
   // load content
 })
 
-router.get('/', async ctx => {
+router.get('/', async (req, res) => {
   // load index page
 })
 
