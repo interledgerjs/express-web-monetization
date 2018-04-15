@@ -31,6 +31,8 @@ paywalled content. For a complete and working example, look at the next
 section.
 
 ```js
+'use strict'
+
 const express = require('express')
 const app = express()
 const server = require('http').Server(app)
@@ -38,6 +40,10 @@ const router = express.Router()
 const { WebMonetizationMiddleware, ExpressWebMonetization } = require('express-web-monetization')
 const monetizer = new ExpressWebMonetization()
 const cookieParser = require('cookie-parser')
+const path = require('path')
+
+// client js asset; path may vary depending on version of npm/yarn
+const EXPRESS_WEB_MONETIZATION_CLIENT_PATH =  '/node_modules/express-web-monetization/client.js'
 
 // This is the SPSP endpoint that lets you receive ILP payments.  Money that
 // comes in is associated with the :id
@@ -53,34 +59,51 @@ router.get('/content/', async (req, res) => {
   // load content
 })
 
-router.get('/', async (req, res) => {
-  // load index page
+router.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname + '/index.html'))
 })
+
+app.use(
+  '/scripts/monetization-client.js',
+  express.static(__dirname + EXPRESS_WEB_MONETIZATION_CLIENT_PATH)
+)
 
 app.use(cookieParser())
 app.use(WebMonetizationMiddleware(monetizer))
 app.use('/', router)
 server.listen(8080)
+
 ```
 
 The client side code to support this is very simple too:
 
 ```html
-<script src="node_modules/express-web-monetization/client.js"></script>
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <div id="container"> </div>
+<script src="/scripts/monetization-client.js"></script>
 <script>
-  var monetizerClient = new MonetizerClient();
-  monetizerClient.start()
-    .then(function() {
-      var img = document.createElement('img')
-      var container = document.getElementById('container')
-      img.src = '/content/'
-      img.width = '600'
-      container.appendChild(img)
-    })
-    .catch(function(error){
-      console.log("Error", error);
-    })
-</script>
+    var monetizerClient = new MonetizerClient();
+    monetizerClient.start()
+      .then(function () {
+        var img = document.createElement('img')
+        var container = document.getElementById('container')
+        img.src = '/content/'
+        img.width = '600'
+        container.appendChild(img)
+      })
+      .catch(function (error) {
+        console.log("Error", error);
+      })
+  </script>
+</body>
+</html>
 ```
 
 ## Try it out
