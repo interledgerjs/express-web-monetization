@@ -112,7 +112,7 @@ const WebMonetizationMiddleware = (monetizer) => {
         return monetizer[key](req.cookies[monetizer.cookieName], amount)
       }
       if (key === 'balance') {
-        monetizer[key] = monetizer.buckets[req.cookies[monetizer.cookieName]]
+        monetizer[key] = monetizer.buckets.get(req.cookies[monetizer.cookieName])
       }
       req[key] = req[key].bind(monetizer)
     })
