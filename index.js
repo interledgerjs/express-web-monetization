@@ -106,10 +106,13 @@ class ExpressWebMonetization {
 // Make our own middleware
 const WebMonetizationMiddleware = (monetizer) => {
   return async (req, res, next) => {
-    ;['awaitBalance', 'spend'].forEach(key => {
+    ;['awaitBalance', 'spend', 'balance'].forEach(key => {
       req[key] = (amount) => {
         monetizer[key] = monetizer[key].bind(monetizer)
         return monetizer[key](req.cookies[monetizer.cookieName], amount)
+      }
+      if (key === 'balance') {
+        monetizer[key] = monetizer.buckets[req.cookies[monetizer.cookieName]]
       }
       req[key] = req[key].bind(monetizer)
     })
