@@ -37,17 +37,15 @@ const express = require('express')
 const app = express()
 const server = require('http').Server(app)
 const router = express.Router()
-const { WebMonetizationMiddleware, ExpressWebMonetization } = require('express-web-monetization')
+const ExpressWebMonetization = require('express-web-monetization')
 const monetizer = new ExpressWebMonetization()
 const cookieParser = require('cookie-parser')
 const path = require('path')
 
-// client js asset; path may vary depending on version of npm/yarn
-const EXPRESS_WEB_MONETIZATION_CLIENT_PATH =  '/node_modules/express-web-monetization/client.js'
 
 // This is the SPSP endpoint that lets you receive ILP payments.  Money that
 // comes in is associated with the :id
-router.get(monetizer.receiverEndpointUrl, monetizer.receive.bind(monetizer))
+router.get(monetizer.receiverEndpointUrl, monetizer.receive())
 
 // This endpoint charges 100 units to the user with :id
 // If awaitBalance is set to true, the call will stay open until the balance is sufficient. This is convenient
@@ -59,17 +57,16 @@ router.get('/content/', async (req, res) => {
   // load content
 })
 
+router.get('/client.js', async (req, res) => {
+  res.send(monetizer.serverClient())
+})
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'))
 })
 
-app.use(
-  '/scripts/monetization-client.js',
-  express.static(__dirname + EXPRESS_WEB_MONETIZATION_CLIENT_PATH)
-)
 
 app.use(cookieParser())
-app.use(WebMonetizationMiddleware(monetizer))
+app.use(monetizer.mount())
 app.use('/', router)
 server.listen(8080)
 
@@ -87,20 +84,11 @@ The client side code to support this is very simple too:
 
 <body>
   <div id="container"> </div>
+  <img src="/content" width="600"/>
 <script src="/scripts/monetization-client.js"></script>
 <script>
     var monetizerClient = new MonetizerClient();
     monetizerClient.start()
-      .then(function () {
-        var img = document.createElement('img')
-        var container = document.getElementById('container')
-        img.src = '/content/'
-        img.width = '600'
-        container.appendChild(img)
-      })
-      .catch(function (error) {
-        console.log("Error", error);
-      })
   </script>
 </body>
 </html>
@@ -172,14 +160,14 @@ Creates a new `MonetizerClient` instance.
 
 - `opts.url` - The url of the server that is registering the HapiWebMonetization plugin. Defaults to `new URL(window.location).origin`
 - `opts.cookieName` - The cookie key name that will be saved in your browser. Defaults to `__monetizer`. This MUST be the same has `opts.cookieName` in the server configuration.
-- `opts.receiverUrl` - The endpoint where users of the site can start streaming packets via their browser extension or through the browser API. Defaults to `opts.url + '__monetizer/:id'` where id is the server generated payer ID. This MUST be the same has `opts.receiverEndpointUrl` in the server configuration.
+- `opts.receiveEndpointUrl` - The endpoint where users of the site can start streaming packets via their browser extension or through the browser API. Defaults to `opts.url + '__monetizer/:id'` where id is the server generated payer ID. This MUST be the same has `opts.receiverEndpointUrl` in the server configuration.
 
 ### Middleware for cookies
 
 ```ts
 WebMonetizationMiddleware(monetizer: ExpressWebMonetization)
 ```
-This middleware allows cookies to be generated (or just sent if already set) from the server to the client. It also injects the `awaitBalance` and `spend` methods described below. Note that your app must require and use the `cookie-parser` middleware before it uses the `WebMonetizationMiddleware`. 
+This middleware allows cookies to be generated (or just sent if already set) from the server to the client. It also injects the `awaitBalance` and `spend` methods described below. Note that your app must require and use the `cookie-parser` middleware before it uses the `WebMonetizationMiddleware`.
 
 ### Charging users
 
