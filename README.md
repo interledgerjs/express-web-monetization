@@ -138,7 +138,7 @@ Create a new `ExpressWebMonetization` instance.
 
 - `opts.plugin` - Supply an ILP plugin. Defaults to using Moneyd.
 - `opts.maxBalance` - The maximum balance that can be associated with any user. Defaults to `Infinity`.
-- `opts.receiveEndpointUrl` - The endpoint in your Hapi route configuration that specifies where a user pays streams PSK packets to your site. Defaults to `/__monetizer/{id}` where `{id}` is the server generated ID (stored in the browser as a cookie).
+- `opts.receiveEndpointUrl` - The endpoint in your Express route configuration that specifies where a user pays streams PSK packets to your site. Defaults to `/__monetizer/{id}` where `{id}` is the server generated ID (stored in the browser as a cookie).
 - `opts.cookieName` - The cookie key name for your server generated payer ID. Defaults to `__monetizer`.
 - `opts.cookieOptions` - Cookie configurations for Express. See [Express response setting cookies options](https://expressjs.com/en/api.html) for more details! Only defaults are `httpOnly: false`
 ### Receiver
@@ -158,7 +158,7 @@ new MonetizerClient(opts: Object | void): MonetizerClient
 ```
 Creates a new `MonetizerClient` instance.
 
-- `opts.url` - The url of the server that is registering the HapiWebMonetization plugin. Defaults to `new URL(window.location).origin`
+- `opts.url` - The url of the server that is registering the ExpressWebMonetization plugin. Defaults to `new URL(window.location).origin`
 - `opts.cookieName` - The cookie key name that will be saved in your browser. Defaults to `__monetizer`. This MUST be the same has `opts.cookieName` in the server configuration.
 - `opts.receiveEndpointUrl` - The endpoint where users of the site can start streaming packets via their browser extension or through the browser API. Defaults to `opts.url + '__monetizer/:id'` where id is the server generated payer ID. This MUST be the same has `opts.receiverEndpointUrl` in the server configuration.
 
