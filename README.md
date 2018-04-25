@@ -60,6 +60,7 @@ router.get('/content/', async (req, res) => {
 router.get('/client.js', async (req, res) => {
   res.send(monetizer.serverClient())
 })
+
 router.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '/index.html'))
 })
