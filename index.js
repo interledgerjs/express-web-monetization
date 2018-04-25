@@ -3,6 +3,9 @@ const EventEmitter = require('events')
 const getIlpPlugin = require('ilp-plugin')
 const debug = require('debug')('express-web-monetization')
 const { randomBytes } = require('crypto')
+const pathToRegexp = require('path-to-regexp')
+const fs = require('fs-extra')
+const path = require('path')
 
 class ExpressWebMonetization {
   constructor (opts) {
@@ -81,47 +84,52 @@ class ExpressWebMonetization {
     this.buckets.set(id, balance - price)
   }
 
-  async receive (req, res) {
-    await this.connect()
-    if (req.headers.accept !== 'application/spsp+json') {
-      res.status(40).send('Wrong Headers')
+  receive () {
+    return async (req, res, next) => {
+      await this.connect()
+      // const re = pathToRegexp(this.receiverEndpointUrl)
+      // const monetizerUrl = re.exec(req.url)
+      if (req.headers.accept !== 'application/spsp+json') {
+        res.status(40).send('Wrong Headers')
+      }
+
+      const { destinationAccount, sharedSecret } =
+        this.receiver.generateAddressAndSecret()
+
+      const segments = destinationAccount.split('.')
+      const resultAccount = segments.slice(0, -2).join('.') +
+        '.' + req.params.id +
+        '.' + segments.slice(-2).join('.')
+
+      res.header('Content-Type', 'application/spsp+json')
+      res.send({
+        destination_account: resultAccount,
+        shared_secret: sharedSecret.toString('base64')
+      })
     }
+  }
 
-    const { destinationAccount, sharedSecret } =
-      this.receiver.generateAddressAndSecret()
+  mount () {
+    return async (req, res, next) => {
+      ;['awaitBalance', 'spend', 'balance'].forEach(key => {
+        req[key] = (amount) => {
+          return this[key](req.cookies[this.cookieName], amount)
+        }
+        if (key === 'balance') {
+          this[key] = this.buckets.get(req.cookies[this.cookieName])
+        }
+        req[key] = req[key].bind(this)
+      })
+      // Send back cookie
+      res.cookie(this.cookieName, this.generatePayerId(req), this.cookieOptions)
+      next()
+    }
+  }
 
-    const segments = destinationAccount.split('.')
-    const resultAccount = segments.slice(0, -2).join('.') +
-      '.' + req.params.id +
-      '.' + segments.slice(-2).join('.')
-
-    res.header('Content-Type', 'application/spsp+json')
-    res.send({
-      destination_account: resultAccount,
-      shared_secret: sharedSecret.toString('base64')
-    })
+  serverClient () {
+    return fs.readFileSync(path.resolve(__dirname, 'client.js'))
   }
 }
 
-// Make our own middleware
-const WebMonetizationMiddleware = (monetizer) => {
-  return async (req, res, next) => {
-    ;['awaitBalance', 'spend', 'balance'].forEach(key => {
-      req[key] = (amount) => {
-        monetizer[key] = monetizer[key].bind(monetizer)
-        return monetizer[key](req.cookies[monetizer.cookieName], amount)
-      }
-      if (key === 'balance') {
-        monetizer[key] = monetizer.buckets.get(req.cookies[monetizer.cookieName])
-      }
-      req[key] = req[key].bind(monetizer)
-    })
-    // Send back cookie
-    res.cookie(monetizer.cookieName, monetizer.generatePayerId(req), monetizer.cookieOptions)
-    next()
-  }
-}
-module.exports = {
-  WebMonetizationMiddleware,
-  ExpressWebMonetization
-}
+// Make our own middlew
+module.exports = ExpressWebMonetization
